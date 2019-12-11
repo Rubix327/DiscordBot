@@ -1,16 +1,26 @@
 import discord
 import random
+import os
+from math import sqrt, e, pi, sin, cos, tan, asin, acos, atan, factorial
 from discord.ext import commands
+from dotenv import load_dotenv
+
+load_dotenv()
+TOKEN = os.getenv('DISCORD_TOKEN')
+GUILD = os.getenv('DISCORD_GUILD')
 
 client = commands.Bot(command_prefix = '.')
 
 @client.event
 async def on_ready():
+    await client.change_presence(status=discord.Status.online, activity=discord.Game('Lost Ark'))
     print('Бот готов к работе.')
 
 @client.event
 async def on_member_join(member):
     print(f'{member} появился на сервере!')
+    await member.create_dm()
+    await member.dm_channel.send(f'Вітаємо тебе на сервері, {member.name}!')
 
 @client.event
 async def on_member_remove(member):
@@ -19,11 +29,15 @@ async def on_member_remove(member):
 # @commands.error
 # async def command_error(ctx, error):
 #     if isinstance(error, commands.CommandNotFound):
-#         await ctx.send('че ты несешь??! я не знаю такой команды..')
+#         await ctx.send('ты че несешь??! я не знаю такой команды..')
+
+# Пинг-понг и проверить задержку до сервера
 
 @client.command()
 async def ping(ctx):
-    await ctx.send(f'Понг! {round(client.latency * 1000)} ms')
+    await ctx.send(f'Понг! {round(client.latency * 1000)} мс')
+
+# Магический шар
 
 @client.command(aliases=['8ball', 'qball', 'question', 'magicball', 'mb'])
 async def _8ball(ctx, *, question):
@@ -51,6 +65,8 @@ async def _8ball(ctx, *, question):
     ]
     await ctx.send(f'Вопрос: {question}\nОтвет: {random.choice(responses)}')
 
+# Проверка на отсутствие вопроса
+
 @_8ball.error
 async def _8ball_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
@@ -77,6 +93,8 @@ async def testMe_error(ctx, error):
 async def clear(ctx, amount=5):
     await ctx.channel.purge(limit=amount+1)
     await ctx.send(f"Удалено {amount} сообщений.")
+
+# Проверка на ошибку об отсутствии прав владельца
 
 @clear.error
 async def clear_error(ctx, error):
@@ -136,4 +154,48 @@ async def unban_error(ctx, error):
     if isinstance(error, commands.MissingRole):
         await ctx.send('Кажется, у тебя недостаточно прав...')
 
-client.run('NjU0MDM5OTQ2NzA0OTc3OTM0.Xe_wPw.2IRwJAUOdaa7U6Igir2F-_pKDx4')
+# Список пользователей сервера
+
+@client.command()
+async def members(ctx):
+    for guild in client.guilds:
+        if guild.name == GUILD:
+            break
+
+    print(
+        f'{client.user} подключен к следующим серверам:\n'
+        f'{guild.name} (id: {guild.id})\n')
+
+    members = '\n - '.join([member.name for member in guild.members])
+    await ctx.send(f'Работники компании Рассвет:\n - {members}') 
+
+# Изменение статуса бота
+
+@client.command()
+@commands.has_any_role('Он тут по приколу', 'кубик', 'Кто этот дельфин', 'Лост-Аркер', 'Подключен к сети')
+async def changeStatus(ctx, *, status):
+    await client.change_presence(activity=discord.Game(status))
+
+# Калькулятор
+
+@client.command()
+async def calc(ctx, *, message):
+    await ctx.send(eval(message))
+
+# Ошибка калькулятора (если неверно введен пример)
+
+@calc.error
+async def calc_error(ctx, error):
+    if isinstance(error, commands.CommandInvokeError):
+        await ctx.send('кажись ты ввел пример неправильно..')
+
+# @client.event
+# async def on_message(message):
+#     if message.author == client.user:
+#         return
+#     if 'youtube.com/watch?v' in message.content.lower():
+#         await message.channel.send('о, видосик, надо глянуть')
+#     if message.content.lower().startswith('.'):
+#         pass
+
+client.run(TOKEN)
