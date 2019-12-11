@@ -11,6 +11,6 @@ Version 1.0:
 Version 1.1:
 -
 - **Added bot status**
-- **dded some commands**: members, calc, changeStatus
+- **Added some commands**: members, calc, changeStatus
 - **Added DM greeting as user joins a server**
 - **Bot token and guild token are transfered to .env file so now you can't hack me**
